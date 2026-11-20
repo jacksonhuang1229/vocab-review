@@ -1,0 +1,12 @@
+airport
+backpack
+calendar
+dinosaur
+envelope
+football
+hotel
+jacket
+library
+magazine
+necklace
+postcard

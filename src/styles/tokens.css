@@ -1,0 +1,47 @@
+:root {
+  color-scheme: light;
+
+  --font-display: "Noto Serif", "Liberation Serif", "WenQuanYi Micro Hei", serif;
+  --font-body: Inter, "Noto Sans", "Liberation Sans", "WenQuanYi Micro Hei", sans-serif;
+
+  --color-bg: #f3efe6;
+  --color-bg-accent: #e7f3f1;
+  --color-surface: #fffdf8;
+  --color-ink: #1c2430;
+  --color-ink-soft: #3e4a59;
+  --color-muted: #5e6a78;
+  --color-line: #e4dccb;
+  --color-line-strong: #cfc4ae;
+  --color-accent: #0c6e6a;
+  --color-accent-hover: #0a5c59;
+  --color-accent-ink: #f7fffe;
+  --color-danger: #9d342c;
+  --color-danger-bg: #fdeceb;
+  --color-danger-line: #f0c2be;
+  --color-warning-bg: #fff4e0;
+  --color-warning-ink: #7a4e0d;
+  --color-ok-ink: #0a5c59;
+
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.5rem;
+  --space-6: 2rem;
+  --space-7: 3rem;
+  --space-8: 4rem;
+
+  --text-sm: 0.875rem;
+  --text-md: 1rem;
+  --text-lg: 1.25rem;
+  --text-xl: 1.75rem;
+  --text-2xl: 2.25rem;
+
+  --radius-sm: 0.5rem;
+  --radius-md: 0.875rem;
+  --radius-lg: 1.25rem;
+
+  --shadow-card: 0 1px 0 rgba(28, 36, 48, 0.04), 0 12px 32px rgba(28, 36, 48, 0.06);
+  --content-width: 40rem;
+  --tap: 2.75rem;
+}
