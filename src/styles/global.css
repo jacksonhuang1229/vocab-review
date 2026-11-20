@@ -222,16 +222,26 @@ input {
   color: var(--color-accent);
 }
 
-input[type='text'] {
+input[type='text'],
+textarea {
   width: 100%;
-  min-height: var(--tap);
   border: 1px solid var(--color-line-strong);
   border-radius: var(--radius-sm);
   background: var(--color-surface);
   padding: 0.55rem 0.75rem;
 }
 
-input[type='text']:hover {
+input[type='text'] {
+  min-height: var(--tap);
+}
+
+textarea {
+  min-height: 7rem;
+  resize: vertical;
+}
+
+input[type='text']:hover,
+textarea:hover {
   border-color: var(--color-accent);
 }
 
@@ -269,6 +279,21 @@ input[type='text']:hover {
 .file-field.is-dragging {
   border-color: var(--color-accent);
   background: var(--color-bg-accent);
+}
+
+.photo-preview {
+  margin: 0;
+  max-width: 16rem;
+}
+
+.photo-preview img {
+  display: block;
+  width: 100%;
+  max-height: 14rem;
+  object-fit: contain;
+  background: white;
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-sm);
 }
 
 .empty-panel {
