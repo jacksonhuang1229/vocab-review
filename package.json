@@ -10,7 +10,8 @@
     "verify": "node scripts/verify-step1.mjs",
     "verify:ocr": "node scripts/verify-step2.mjs",
     "verify:practice": "node scripts/verify-step3.mjs",
-    "verify:picture": "node scripts/verify-step4.mjs"
+    "verify:picture": "node scripts/verify-step4.mjs",
+    "verify:flow": "node scripts/verify-step5.mjs"
   },
   "dependencies": {
     "react": "^19.3.1",
