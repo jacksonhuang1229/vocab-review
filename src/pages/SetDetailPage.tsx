@@ -184,7 +184,7 @@ export function SetDetailPage() {
       </div>
       <p className="hint">修改會留在這個畫面，按下「儲存修改」才寫入。若儲存失敗，這些修改會留下。</p>
 
-      <PracticeModes />
+      <PracticeModes setId={saved.id} entries={saved.entries} dirty={dirty} />
     </form>
   );
 }

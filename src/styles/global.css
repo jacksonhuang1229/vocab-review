@@ -449,7 +449,16 @@ textarea:hover {
 
 .mode-card p {
   color: var(--color-ink-soft);
-  flex: 1;
+}
+
+.mode-card.is-ready {
+  border-style: solid;
+  border-color: var(--color-line);
+  box-shadow: var(--shadow-card);
+}
+
+.mode-card .button {
+  margin-top: auto;
 }
 
 .badge {
@@ -459,6 +468,77 @@ textarea:hover {
   background: var(--color-warning-bg);
   border-radius: 999px;
   padding: 0.1rem 0.65rem;
+}
+
+.badge-ready {
+  color: var(--color-ok-ink);
+  background: var(--color-bg-accent);
+}
+
+.spell-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.spell-char {
+  width: var(--tap);
+  height: var(--tap);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-sm);
+  background: var(--color-bg-accent);
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+}
+
+input[type='text'].spell-blank {
+  width: var(--tap);
+  min-width: var(--tap);
+  height: var(--tap);
+  min-height: var(--tap);
+  padding: 0;
+  text-align: center;
+  border: 2px solid var(--color-accent);
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+}
+
+.spell-sep {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 0.75rem;
+  font-size: 1.35rem;
+}
+
+.spell-sep[data-value=' '] {
+  width: 1.75rem;
+  min-width: 1.75rem;
+}
+
+.correct-line {
+  font-size: var(--text-lg);
+}
+
+.correct-line span {
+  font-family: var(--font-display);
+}
+
+.listen-answer {
+  font-size: var(--text-lg);
+}
+
+.progress {
+  font-variant-numeric: tabular-nums;
+}
+
+.practice-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
 }
 
 .name-input {
@@ -499,11 +579,14 @@ textarea:hover {
     font-size: var(--text-xl);
   }
 
-  .action-bar {
+  .action-bar,
+  .practice-actions {
     flex-direction: column;
   }
 
-  .action-bar .button {
+  .action-bar .button,
+  .practice-actions .button,
+  .listen-prompt > .button {
     width: 100%;
   }
 }

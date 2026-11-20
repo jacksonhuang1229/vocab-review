@@ -1,6 +1,7 @@
 import { BrowserRouter, Link, Route, Routes } from 'react-router-dom';
 import { AppShell } from './components/AppShell';
 import { ImportPage } from './pages/ImportPage';
+import { PracticePage } from './pages/PracticePage';
 import { SetDetailPage } from './pages/SetDetailPage';
 import { SetListPage } from './pages/SetListPage';
 
@@ -12,6 +13,7 @@ export function App() {
           <Route index element={<SetListPage />} />
           <Route path="import" element={<ImportPage />} />
           <Route path="sets/:id" element={<SetDetailPage />} />
+          <Route path="sets/:id/practice/:mode" element={<PracticePage />} />
           <Route path="*" element={<NotFound />} />
         </Route>
       </Routes>

@@ -142,12 +142,17 @@ try {
   await page.keyboard.type('機場');
   await page.click('[data-testid="confirm-save"]');
   await page.waitForSelector('[data-testid="practice-modes"]');
-  const modeButtons = await page.$$eval('[data-testid="mode-unavailable"] button', (buttons) =>
-    buttons.map((button) => ({ text: button.textContent ?? '', disabled: button.disabled })),
-  );
-  assert.equal(modeButtons.length, 3);
-  assert.ok(modeButtons.every((button) => button.disabled && button.text.includes('尚未開放')));
-  const modeTitles = await page.$$eval('[data-testid="mode-unavailable"] h3', (nodes) => nodes.map((node) => node.textContent));
+  assert.equal(await page.$eval('[data-testid="mode-cloze"] [data-testid="mode-count"]', (node) => node.textContent), '可出題 12 個詞');
+  assert.equal(await page.$eval('[data-testid="mode-listen"] [data-testid="mode-count"]', (node) => node.textContent), '可出題 12 個詞');
+  assert.ok(await page.$('[data-testid="start-cloze"]'));
+  assert.ok(await page.$('[data-testid="start-listen"]'));
+  const picture = await page.$eval('[data-testid="mode-unavailable"] button', (button) => ({
+    text: button.textContent ?? '',
+    disabled: button.disabled,
+  }));
+  assert.equal(picture.disabled, true);
+  assert.ok(picture.text.includes('尚未開放'));
+  const modeTitles = await page.$$eval('[data-testid="practice-modes"] h3', (nodes) => nodes.map((node) => node.textContent));
   assert.deepEqual(modeTitles, ['聽音拼字', '字母填空', '看圖選字']);
 
   await page.goto(`${base}/import`, { waitUntil: 'domcontentloaded' });
