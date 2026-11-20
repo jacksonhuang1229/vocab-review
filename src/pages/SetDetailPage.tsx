@@ -2,11 +2,13 @@ import { useEffect, useState } from 'react';
 import type { FormEvent } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { EntryListEditor } from '../components/EntryListEditor';
+import { EntryPicture } from '../components/EntryPicture';
 import { PracticeModes } from '../components/PracticeModes';
 import type { DraftEntry } from '../domain/draft';
 import { draftToEntries, entriesToDraft, sameStoredContent, validateDraft } from '../domain/draft';
 import { formatTimestamp } from '../domain/format';
-import type { WordSet } from '../domain/types';
+import type { ImageAsset, WordSet } from '../domain/types';
+import { listImages } from '../db/imageStore';
 import {
   SAVE_FAILED_MESSAGE,
   WordSetSaveError,
@@ -14,6 +16,7 @@ import {
   saveFailureArmed,
   updateWordSet,
 } from '../db/wordSetStore';
+import { buildPictureRound } from '../practice/picture';
 
 export function SetDetailPage() {
   const { id } = useParams();
@@ -25,6 +28,7 @@ export function SetDetailPage() {
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [images, setImages] = useState<ImageAsset[] | null>(null);
 
   useEffect(() => {
     document.title = '課次內容 · 英文單字複習';
@@ -49,6 +53,22 @@ export function SetDetailPage() {
       })
       .catch(() => {
         if (active) setLoadError('無法讀取這個單字組。');
+      });
+    return () => {
+      active = false;
+    };
+  }, [id]);
+
+  useEffect(() => {
+    if (!id) return;
+    let active = true;
+    setImages(null);
+    listImages()
+      .then((rows) => {
+        if (active) setImages(rows);
+      })
+      .catch(() => {
+        if (active) setLoadError('無法讀取配圖。');
       });
     return () => {
       active = false;
@@ -169,6 +189,19 @@ export function SetDetailPage() {
         emptyTitle="這個課次目前沒有詞條"
         emptyBody="新增詞條後再儲存。尚未儲存前，原來的課次不會被改掉。"
         emptyTestId="empty-preview"
+        renderEntryExtra={(entry) => (
+          <EntryPicture
+            entry={entry}
+            entries={entries}
+            images={images ?? []}
+            imagesLoaded={images !== null}
+            onEntry={(next) => {
+              setEntries((current) => current.map((item) => (item.id === next.id ? next : item)));
+              setNotice(null);
+            }}
+            onImages={setImages}
+          />
+        )}
       />
 
       {error ? (
@@ -184,7 +217,12 @@ export function SetDetailPage() {
       </div>
       <p className="hint">修改會留在這個畫面，按下「儲存修改」才寫入。若儲存失敗，這些修改會留下。</p>
 
-      <PracticeModes setId={saved.id} entries={saved.entries} dirty={dirty} />
+      <PracticeModes
+        setId={saved.id}
+        entries={saved.entries}
+        dirty={dirty}
+        pictureCount={buildPictureRound(saved.entries, images ?? []).length}
+      />
     </form>
   );
 }

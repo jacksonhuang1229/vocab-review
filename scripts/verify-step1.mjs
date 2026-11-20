@@ -146,12 +146,9 @@ try {
   assert.equal(await page.$eval('[data-testid="mode-listen"] [data-testid="mode-count"]', (node) => node.textContent), '可出題 12 個詞');
   assert.ok(await page.$('[data-testid="start-cloze"]'));
   assert.ok(await page.$('[data-testid="start-listen"]'));
-  const picture = await page.$eval('[data-testid="mode-unavailable"] button', (button) => ({
-    text: button.textContent ?? '',
-    disabled: button.disabled,
-  }));
-  assert.equal(picture.disabled, true);
-  assert.ok(picture.text.includes('尚未開放'));
+  assert.equal(await page.$eval('[data-testid="mode-picture"] [data-testid="mode-count"]', (node) => node.textContent), '可出題 0 個詞');
+  assert.match(await page.$eval('[data-testid="picture-empty-note"]', (node) => node.textContent ?? ''), /上傳配圖/);
+  assert.ok(await page.$('[data-testid="start-picture"]'));
   const modeTitles = await page.$$eval('[data-testid="practice-modes"] h3', (nodes) => nodes.map((node) => node.textContent));
   assert.deepEqual(modeTitles, ['聽音拼字', '字母填空', '看圖選字']);
 

@@ -1,3 +1,4 @@
+import { normalizeSpelling } from '../practice/score';
 import type { WordEntry, WordSet } from './types';
 
 export type DraftEntry = {
@@ -5,6 +6,9 @@ export type DraftEntry = {
   spelling: string;
   meaningHint: string;
   imageId?: string;
+  abstract?: boolean;
+  imageAcceptedSpelling?: string;
+  imageAcceptedMeaning?: string;
 };
 
 export function entriesToDraft(entries: WordEntry[]): DraftEntry[] {
@@ -13,6 +17,13 @@ export function entriesToDraft(entries: WordEntry[]): DraftEntry[] {
     spelling: entry.spelling,
     meaningHint: entry.meaningHint ?? '',
     ...(entry.imageId ? { imageId: entry.imageId } : {}),
+    ...(entry.abstract ? { abstract: true } : {}),
+    ...(entry.imageAcceptedSpelling && entry.imageAcceptedMeaning
+      ? {
+          imageAcceptedSpelling: entry.imageAcceptedSpelling,
+          imageAcceptedMeaning: entry.imageAcceptedMeaning,
+        }
+      : {}),
   }));
 }
 
@@ -25,6 +36,18 @@ export function draftToEntries(entries: DraftEntry[]): WordEntry[] {
     const meaning = entry.meaningHint.trim();
     if (meaning) stored.meaningHint = meaning;
     if (entry.imageId) stored.imageId = entry.imageId;
+    if (entry.abstract) stored.abstract = true;
+    const acceptedSpelling = entry.imageAcceptedSpelling?.trim();
+    const acceptedMeaning = entry.imageAcceptedMeaning?.trim();
+    if (
+      acceptedSpelling &&
+      acceptedMeaning &&
+      acceptedMeaning === meaning &&
+      normalizeSpelling(acceptedSpelling) === normalizeSpelling(entry.spelling)
+    ) {
+      stored.imageAcceptedSpelling = acceptedSpelling;
+      stored.imageAcceptedMeaning = acceptedMeaning;
+    }
     return stored;
   });
 }
@@ -48,7 +71,10 @@ export function sameStoredContent(name: string, entries: DraftEntry[], saved: Wo
       entry.id === other.id &&
       entry.spelling === other.spelling &&
       (entry.meaningHint ?? '') === (other.meaningHint ?? '') &&
-      (entry.imageId ?? '') === (other.imageId ?? '')
+      (entry.imageId ?? '') === (other.imageId ?? '') &&
+      Boolean(entry.abstract) === Boolean(other.abstract) &&
+      (entry.imageAcceptedSpelling ?? '') === (other.imageAcceptedSpelling ?? '') &&
+      (entry.imageAcceptedMeaning ?? '') === (other.imageAcceptedMeaning ?? '')
     );
   });
 }

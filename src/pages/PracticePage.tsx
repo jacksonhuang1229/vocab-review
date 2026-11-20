@@ -1,32 +1,40 @@
 import { useEffect, useRef, useState } from 'react';
 import type { FormEvent, KeyboardEvent } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import type { WordEntry, WordSet } from '../domain/types';
+import { PictureThumb } from '../components/EntryPicture';
+import type { ImageAsset, WordEntry, WordSet } from '../domain/types';
+import { listImages } from '../db/imageStore';
 import { getWordSet } from '../db/wordSetStore';
 import { buildBlankPrompt, canAskListen, reconstructSpelling } from '../practice/blanks';
 import type { BlankPrompt } from '../practice/blanks';
+import { buildPictureRound } from '../practice/picture';
+import type { PictureChoice } from '../practice/picture';
 import { answersMatch } from '../practice/score';
 import { loadEnglishVoice, speakText } from '../practice/speech';
 import type { EnglishVoice } from '../practice/speech';
 
-type PracticeMode = 'cloze' | 'listen';
+type PracticeMode = 'cloze' | 'listen' | 'picture';
 type Phase = 'answer' | 'feedback' | 'summary';
 
 type Question = {
   id: string;
   spelling: string;
   prompt: BlankPrompt | null;
+  imageId?: string;
+  choices?: PictureChoice[];
 };
 
 const MODE_TITLE: Record<PracticeMode, string> = {
   cloze: '字母填空',
   listen: '聽音拼字',
+  picture: '看圖選字',
 };
 
 export function PracticePage() {
   const { id, mode: modeParam } = useParams();
-  const mode: PracticeMode | null = modeParam === 'cloze' || modeParam === 'listen' ? modeParam : null;
+  const mode: PracticeMode | null = modeParam === 'cloze' || modeParam === 'listen' || modeParam === 'picture' ? modeParam : null;
   const [saved, setSaved] = useState<WordSet | null>(null);
+  const [images, setImages] = useState<ImageAsset[] | null>(null);
   const [missing, setMissing] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
 
@@ -56,6 +64,22 @@ export function PracticePage() {
       active = false;
     };
   }, [id, mode]);
+
+  useEffect(() => {
+    if (mode !== 'picture') return;
+    let active = true;
+    setImages(null);
+    listImages()
+      .then((rows) => {
+        if (active) setImages(rows);
+      })
+      .catch(() => {
+        if (active) setLoadError('無法讀取配圖。');
+      });
+    return () => {
+      active = false;
+    };
+  }, [mode, saved?.id, saved?.updatedAt]);
 
   if (!mode) {
     return (
@@ -92,8 +116,13 @@ export function PracticePage() {
     return <p>正在讀取課次。</p>;
   }
 
-  const questions = questionsFor(saved.entries, mode);
+  if (mode === 'picture' && images === null) {
+    return <p data-testid="picture-loading">正在讀取配圖。</p>;
+  }
+
+  const questions = questionsFor(saved.entries, mode, images ?? []);
   if (questions.length === 0) {
+    if (mode === 'picture') return <PictureEmpty setId={id} />;
     return (
       <section className="stack">
         <h1>{MODE_TITLE[mode]}</h1>
@@ -105,10 +134,28 @@ export function PracticePage() {
     );
   }
 
-  return <Round key={`${saved.id}:${mode}:${saved.updatedAt}`} setId={id} setName={saved.name} mode={mode} questions={questions} />;
+  return (
+    <Round
+      key={`${saved.id}:${mode}:${saved.updatedAt}`}
+      setId={id}
+      setName={saved.name}
+      mode={mode}
+      questions={questions}
+      images={images ?? []}
+    />
+  );
 }
 
-function questionsFor(entries: WordEntry[], mode: PracticeMode): Question[] {
+function questionsFor(entries: WordEntry[], mode: PracticeMode, images: ImageAsset[]): Question[] {
+  if (mode === 'picture') {
+    return buildPictureRound(entries, images).map((question) => ({
+      id: question.id,
+      spelling: question.spelling,
+      prompt: null,
+      imageId: question.imageId,
+      choices: question.choices,
+    }));
+  }
   const questions: Question[] = [];
   for (const entry of entries) {
     if (mode === 'cloze') {
@@ -121,16 +168,38 @@ function questionsFor(entries: WordEntry[], mode: PracticeMode): Question[] {
   return questions;
 }
 
+function PictureEmpty({ setId }: { setId: string }) {
+  return (
+    <section className="stack" data-testid="picture-unavailable">
+      <h1>看圖選字</h1>
+      <p>這一組還沒有可出的看圖題。</p>
+      <p>
+        在課次裡為要出的詞寫上詞義，再上傳配圖。抽象詞要再按「確認情境圖」。同組至少要有兩個拼寫不同的詞；如果這張圖也像另一個選項，那個選項會被拿掉。缺圖或選項不夠的詞，可以改用聽音拼字或字母填空。
+      </p>
+      <div className="practice-actions">
+        <Link className="button button-primary" to={`/sets/${setId}`} data-testid="back-to-set">
+          回到課次補圖
+        </Link>
+        <Link className="button button-ghost" to="/" data-testid="back-to-list">
+          回到單字組
+        </Link>
+      </div>
+    </section>
+  );
+}
+
 function Round({
   setId,
   setName,
   mode,
   questions,
+  images,
 }: {
   setId: string;
   setName: string;
   mode: PracticeMode;
   questions: Question[];
+  images: ImageAsset[];
 }) {
   const [index, setIndex] = useState(0);
   const [phase, setPhase] = useState<Phase>('answer');
@@ -178,7 +247,7 @@ function Round({
     if (phaseRef.current !== 'answer') return;
     const question = questions[indexRef.current];
     const answer = mode === 'cloze' && question.prompt ? reconstructSpelling(question.prompt.slots, typedRef.current) : givenRef.current;
-    const correct = answersMatch(question.spelling, answer);
+    const correct = mode === 'picture' ? answer === question.id : answersMatch(question.spelling, answer);
     setLastCorrect(correct);
     if (correct) setCorrectCount((count) => count + 1);
     setPhaseNow('feedback');
@@ -260,6 +329,7 @@ function Round({
     <form
       className="stack-lg"
       data-testid="practice-round"
+      data-phase={phase}
       onSubmit={(event: FormEvent) => {
         event.preventDefault();
         if (phaseRef.current === 'answer') submit();
@@ -287,6 +357,19 @@ function Round({
           onGiven={(value) => {
             givenRef.current = value;
             setGiven(value);
+          }}
+        />
+      ) : null}
+
+      {mode === 'picture' && question.choices ? (
+        <PictureChoices
+          choices={question.choices}
+          blob={images?.find((image) => image.id === question.imageId)?.blob}
+          selected={given}
+          active={phase === 'answer'}
+          onSelect={(choiceId) => {
+            givenRef.current = choiceId;
+            setGiven(choiceId);
           }}
         />
       ) : null}
@@ -328,6 +411,42 @@ function Round({
         )}
       </div>
     </form>
+  );
+}
+
+function PictureChoices({
+  choices,
+  blob,
+  selected,
+  active,
+  onSelect,
+}: {
+  choices: PictureChoice[];
+  blob: Blob | undefined;
+  selected: string;
+  active: boolean;
+  onSelect: (choiceId: string) => void;
+}) {
+  return (
+    <div className="stack">
+      {blob ? <PictureThumb blob={blob} testId="picture-prompt" large /> : null}
+      <div className="choice-list" data-testid="picture-choices" role="group" aria-label="選出正確拼寫">
+        {choices.map((choice) => (
+          <button
+            key={choice.id}
+            type="button"
+            className={selected === choice.id ? 'choice-button is-selected' : 'choice-button'}
+            data-testid="picture-choice"
+            data-spelling={choice.spelling}
+            aria-pressed={selected === choice.id}
+            disabled={!active}
+            onClick={() => onSelect(choice.id)}
+          >
+            {choice.spelling}
+          </button>
+        ))}
+      </div>
+    </div>
   );
 }
 

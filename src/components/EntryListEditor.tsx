@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import { useEffect, useRef } from 'react';
 import type { DraftEntry } from '../domain/draft';
 import { createId } from '../domain/ids';
@@ -8,6 +9,7 @@ type EntryListEditorProps = {
   emptyTitle: string;
   emptyBody: string;
   emptyTestId: string;
+  renderEntryExtra?: (entry: DraftEntry) => ReactNode;
 };
 
 export function EntryListEditor({
@@ -16,6 +18,7 @@ export function EntryListEditor({
   emptyTitle,
   emptyBody,
   emptyTestId,
+  renderEntryExtra,
 }: EntryListEditorProps) {
   const pendingFocus = useRef<string | null>(null);
 
@@ -30,7 +33,15 @@ export function EntryListEditor({
   }, [entries]);
 
   function update(id: string, patch: Partial<Pick<DraftEntry, 'spelling' | 'meaningHint'>>) {
-    onChange(entries.map((entry) => (entry.id === id ? { ...entry, ...patch } : entry)));
+    onChange(
+      entries.map((entry) => {
+        if (entry.id !== id) return entry;
+        const next: DraftEntry = { ...entry, ...patch };
+        delete next.imageAcceptedSpelling;
+        delete next.imageAcceptedMeaning;
+        return next;
+      }),
+    );
   }
 
   function remove(id: string) {
@@ -123,6 +134,7 @@ export function EntryListEditor({
                     刪除
                   </button>
                 </div>
+                {renderEntryExtra ? renderEntryExtra(entry) : null}
               </div>
             </li>
           ))}

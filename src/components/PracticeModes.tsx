@@ -6,9 +6,10 @@ type PracticeModesProps = {
   setId: string;
   entries: WordEntry[];
   dirty: boolean;
+  pictureCount: number;
 };
 
-export function PracticeModes({ setId, entries, dirty }: PracticeModesProps) {
+export function PracticeModes({ setId, entries, dirty, pictureCount }: PracticeModesProps) {
   const clozeCount = entries.filter((entry) => canAskCloze(entry.spelling)).length;
   const listenCount = entries.filter((entry) => canAskListen(entry.spelling)).length;
   const singleLetters = entries.filter((entry) => letterCount(entry.spelling) === 1).length;
@@ -18,7 +19,7 @@ export function PracticeModes({ setId, entries, dirty }: PracticeModesProps) {
       <div className="section-head">
         <h2 id="practice-heading">練習模式</h2>
       </div>
-      <p className="hint">字母填空和聽音拼字使用已儲存的詞。看圖選字還沒開放。</p>
+      <p className="hint">三種練習都使用已儲存的詞和配圖。</p>
       {dirty ? (
         <p className="hint" data-testid="practice-uses-saved">
           畫面上還沒儲存的修改不會出題。先按「儲存修改」，練習才會用新的詞。
@@ -60,13 +61,24 @@ export function PracticeModes({ setId, entries, dirty }: PracticeModesProps) {
             </button>
           )}
         </li>
-        <li className="mode-card" data-testid="mode-unavailable">
-          <span className="badge">尚未開放</span>
+        <li className="mode-card is-ready" data-testid="mode-picture">
+          <span className={pictureCount > 0 ? 'badge badge-ready' : 'badge'}>{pictureCount > 0 ? '可練習' : '先補圖'}</span>
           <h3>看圖選字</h3>
           <p>看已確認的圖片，選出正確拼寫。</p>
-          <button type="button" className="button button-ghost" disabled>
-            尚未開放
-          </button>
+          <p data-testid="mode-count">可出題 {pictureCount} 個詞</p>
+          {pictureCount === 0 ? (
+            <p className="hint" data-testid="picture-empty-note">
+              還沒有可出的看圖題。請在上面寫上詞義並上傳配圖，或回到單字組選別的課次。
+            </p>
+          ) : null}
+          {pictureCount > 0 && pictureCount < entries.length ? (
+            <p className="hint" data-testid="picture-skipped">
+              缺圖、詞義不清楚、抽象詞還沒確認，或湊不到另一個選項的詞，會留在其他模式。
+            </p>
+          ) : null}
+          <Link className="button button-primary" to={`/sets/${setId}/practice/picture`} data-testid="start-picture">
+            {pictureCount > 0 ? '開始練習' : '查看說明'}
+          </Link>
         </li>
       </ul>
     </section>

@@ -13,4 +13,21 @@ export type WordEntry = {
   spelling: string;
   meaningHint?: string;
   imageId?: string;
+  /** Parent marked this as an abstract word that needs a scene picture. */
+  abstract?: boolean;
+  /** Spelling the parent reconfirmed for the linked picture after an edit. */
+  imageAcceptedSpelling?: string;
+  /** Meaning the parent reconfirmed for the linked picture after an edit. */
+  imageAcceptedMeaning?: string;
+};
+
+/** One shared picture. Several lessons can point at the same id. */
+export type ImageAsset = {
+  id: string;
+  word: string;
+  meaning: string;
+  blob: Blob;
+  source: 'upload';
+  sceneConfirmed: boolean;
+  createdAt: number;
 };

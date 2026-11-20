@@ -9,7 +9,8 @@
     "preview": "vite preview --host 127.0.0.1 --port 5173 --strictPort",
     "verify": "node scripts/verify-step1.mjs",
     "verify:ocr": "node scripts/verify-step2.mjs",
-    "verify:practice": "node scripts/verify-step3.mjs"
+    "verify:practice": "node scripts/verify-step3.mjs",
+    "verify:picture": "node scripts/verify-step4.mjs"
   },
   "dependencies": {
     "react": "^19.3.1",

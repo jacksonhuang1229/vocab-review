@@ -541,6 +541,75 @@ input[type='text'].spell-blank {
   gap: var(--space-3);
 }
 
+.entry-picture {
+  display: grid;
+  gap: var(--space-2);
+  min-width: 0;
+  padding-top: var(--space-2);
+}
+
+.check-line {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-sm);
+  color: var(--color-ink-soft);
+}
+
+.picture-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.picture-thumb,
+.picture-prompt {
+  display: block;
+  object-fit: contain;
+  background: white;
+  border: 1px solid var(--color-line);
+}
+
+.picture-thumb {
+  width: 4.5rem;
+  height: 4.5rem;
+  border-radius: var(--radius-sm);
+}
+
+.picture-prompt {
+  width: min(100%, 14rem);
+  height: 10rem;
+  border-radius: var(--radius-md);
+  object-fit: cover;
+}
+
+.choice-list {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.choice-button {
+  width: 100%;
+  min-height: var(--tap);
+  padding: 0.7rem 1rem;
+  border: 2px solid var(--color-line-strong);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  text-align: start;
+  font-size: var(--text-lg);
+  cursor: pointer;
+  overflow-wrap: anywhere;
+}
+
+.choice-button.is-selected {
+  border-color: var(--color-accent);
+  background: var(--color-bg-accent);
+}
+
+.choice-button:disabled {
+  cursor: default;
+}
+
 .name-input {
   width: 100%;
   font-family: var(--font-display);
@@ -586,7 +655,8 @@ input[type='text'].spell-blank {
 
   .action-bar .button,
   .practice-actions .button,
-  .listen-prompt > .button {
+  .listen-prompt > .button,
+  .choice-button {
     width: 100%;
   }
 }

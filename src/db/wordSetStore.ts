@@ -2,8 +2,9 @@ import { createId } from '../domain/ids';
 import type { WordEntry, WordSet } from '../domain/types';
 
 const DB_NAME = 'english-vocab-review';
-const DB_VERSION = 1;
+const DB_VERSION = 2;
 const STORE = 'wordSets';
+export const IMAGE_STORE = 'images';
 
 export const SIMULATE_SAVE_FAILURE_KEY = 'vocab:simulateSaveFailure';
 export const SIMULATE_SAVE_FAILURE_PARAM = 'simulateSaveFailure';
@@ -49,9 +50,16 @@ function openDb(): Promise<IDBDatabase> {
       if (!db.objectStoreNames.contains(STORE)) {
         db.createObjectStore(STORE, { keyPath: 'id' });
       }
+      if (!db.objectStoreNames.contains(IMAGE_STORE)) {
+        db.createObjectStore(IMAGE_STORE, { keyPath: 'id' });
+      }
     };
     request.onsuccess = () => {
       const db = request.result;
+      db.onversionchange = () => {
+        db.close();
+        dbPromise = null;
+      };
       db.onclose = () => {
         dbPromise = null;
       };
@@ -65,15 +73,16 @@ function openDb(): Promise<IDBDatabase> {
   return dbPromise;
 }
 
-function runTransaction<T>(
+export function runStore<T>(
+  storeName: string,
   mode: IDBTransactionMode,
   run: (store: IDBObjectStore) => IDBRequest<T>,
 ): Promise<T> {
   return openDb().then(
     (db) =>
       new Promise<T>((resolve, reject) => {
-        const tx = db.transaction(STORE, mode);
-        const request = run(tx.objectStore(STORE));
+        const tx = db.transaction(storeName, mode);
+        const request = run(tx.objectStore(storeName));
         let settled = false;
         const fail = (error: DOMException | null) => {
           if (settled) return;
@@ -92,11 +101,25 @@ function runTransaction<T>(
   );
 }
 
+function runTransaction<T>(
+  mode: IDBTransactionMode,
+  run: (store: IDBObjectStore) => IDBRequest<T>,
+): Promise<T> {
+  return runStore(STORE, mode, run);
+}
+
 function cloneEntry(entry: WordEntry): WordEntry {
   const stored: WordEntry = { id: entry.id, spelling: entry.spelling.trim() };
   const meaning = entry.meaningHint?.trim();
   if (meaning) stored.meaningHint = meaning;
   if (entry.imageId) stored.imageId = entry.imageId;
+  if (entry.abstract) stored.abstract = true;
+  const acceptedSpelling = entry.imageAcceptedSpelling?.trim();
+  const acceptedMeaning = entry.imageAcceptedMeaning?.trim();
+  if (acceptedSpelling && acceptedMeaning) {
+    stored.imageAcceptedSpelling = acceptedSpelling;
+    stored.imageAcceptedMeaning = acceptedMeaning;
+  }
   return stored;
 }
 

@@ -61,16 +61,23 @@ async function seed(page) {
   await page.goto(`${base}/`, { waitUntil: 'domcontentloaded' });
   await page.evaluate(async (set) => {
     await new Promise((resolve, reject) => {
-      const open = indexedDB.open('english-vocab-review', 1);
+      const open = indexedDB.open('english-vocab-review');
       open.onupgradeneeded = () => {
         if (!open.result.objectStoreNames.contains('wordSets')) {
           open.result.createObjectStore('wordSets', { keyPath: 'id' });
         }
+        if (!open.result.objectStoreNames.contains('images')) {
+          open.result.createObjectStore('images', { keyPath: 'id' });
+        }
       };
       open.onerror = () => reject(open.error);
       open.onsuccess = () => {
-        const tx = open.result.transaction('wordSets', 'readwrite');
-        tx.oncomplete = () => resolve();
+        const db = open.result;
+        const tx = db.transaction('wordSets', 'readwrite');
+        tx.oncomplete = () => {
+          db.close();
+          resolve();
+        };
         tx.onerror = () => reject(tx.error);
         tx.objectStore('wordSets').put(set);
       };
@@ -151,12 +158,8 @@ try {
   assert.equal(await page.$eval('[data-testid="mode-cloze"] [data-testid="mode-count"]', (node) => node.textContent), '可出題 3 個詞');
   assert.equal(await page.$eval('[data-testid="mode-listen"] [data-testid="mode-count"]', (node) => node.textContent), '可出題 4 個詞');
   assert.match(await page.$eval('[data-testid="cloze-skipped"]', (node) => node.textContent ?? ''), /單一字母/);
-  const picture = await page.$eval('[data-testid="mode-unavailable"] button', (button) => ({
-    disabled: button.disabled,
-    text: button.textContent ?? '',
-  }));
-  assert.equal(picture.disabled, true);
-  assert.match(picture.text, /尚未開放/);
+  assert.equal(await page.$eval('[data-testid="mode-picture"] [data-testid="mode-count"]', (node) => node.textContent), '可出題 0 個詞');
+  assert.ok(await page.$('[data-testid="start-picture"]'));
   const storedBefore = JSON.stringify(await readSets(page));
 
   await page.focus('[data-testid="entry-spelling"]');
